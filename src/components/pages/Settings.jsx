@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { toast } from 'react-toastify'
 import { useSelector } from 'react-redux'
@@ -8,13 +8,18 @@ import Card from '@/components/atoms/Card'
 import Input from '@/components/atoms/Input'
 import Badge from '@/components/atoms/Badge'
 import { selectIsAdmin } from '@/store/userSlice'
+import webdavServerSettingService from '@/services/api/webdavServerSettingService'
 const Settings = () => {
   const [activeTab, setActiveTab] = useState('general')
   const isAdmin = useSelector(selectIsAdmin)
+  const user = useSelector((state) => state.user?.user)
+  const [loading, setLoading] = useState(false)
+  const [webdavLoading, setWebdavLoading] = useState(false)
+  const [currentWebdavSettingId, setCurrentWebdavSettingId] = useState(null)
   const [settings, setSettings] = useState({
     webdavEnabled: true,
-    webdavUrl: 'https://vault.example.com/webdav',
-    webdavUsername: 'user@example.com',
+    webdavUrl: '',
+    webdavUsername: '',
     webdavPassword: '',
     wasabiAccessKey: '',
     wasabiSecretKey: '',
@@ -35,15 +40,111 @@ const Settings = () => {
     { id: 'advanced', label: 'Advanced', icon: 'Cog' }
   ]
   
-  const handleSave = (section) => {
-    toast.success(`${section} settings saved`)
+// Load WebDAV settings on component mount
+  useEffect(() => {
+    if (user?.userId) {
+      loadWebDAVSettings()
+    }
+  }, [user?.userId])
+
+  const loadWebDAVSettings = async () => {
+    if (!user?.userId) return
+    
+    setWebdavLoading(true)
+    try {
+      const webdavSettings = await webdavServerSettingService.getByUserId(user.userId)
+      if (webdavSettings) {
+        setCurrentWebdavSettingId(webdavSettings.Id)
+        setSettings(prev => ({
+          ...prev,
+          webdavEnabled: true,
+          webdavUrl: webdavSettings.server_url || '',
+          webdavUsername: webdavSettings.username || '',
+          webdavPassword: webdavSettings.password || ''
+        }))
+      }
+    } catch (error) {
+      console.error('Error loading WebDAV settings:', error)
+    } finally {
+      setWebdavLoading(false)
+    }
+  }
+
+  const handleSave = async (section) => {
+    if (section === 'WebDAV') {
+      await handleSaveWebDAV()
+    } else {
+      toast.success(`${section} settings saved`)
+    }
+  }
+
+  const handleSaveWebDAV = async () => {
+    if (!user?.userId) {
+      toast.error('User not authenticated')
+      return
+    }
+
+    if (!settings.webdavUrl || !settings.webdavUsername) {
+      toast.error('Server URL and username are required')
+      return
+    }
+
+    setLoading(true)
+    try {
+      const webdavData = {
+        server_url: settings.webdavUrl,
+        username: settings.webdavUsername,
+        password: settings.webdavPassword,
+        user_id: user.userId
+      }
+
+      let result
+      if (currentWebdavSettingId) {
+        result = await webdavServerSettingService.update(currentWebdavSettingId, webdavData)
+      } else {
+        result = await webdavServerSettingService.create(webdavData)
+        if (result) {
+          setCurrentWebdavSettingId(result.Id)
+        }
+      }
+
+      if (result) {
+        setSettings(prev => ({
+          ...prev,
+          webdavUrl: result.server_url || prev.webdavUrl,
+          webdavUsername: result.username || prev.webdavUsername,
+          webdavPassword: result.password || prev.webdavPassword
+        }))
+      }
+    } catch (error) {
+      console.error('Error saving WebDAV settings:', error)
+      toast.error('Failed to save WebDAV settings')
+    } finally {
+      setLoading(false)
+    }
   }
   
-  const handleTestConnection = (type) => {
-    toast.info(`Testing ${type} connection...`)
-    setTimeout(() => {
-      toast.success(`${type} connection successful`)
-    }, 2000)
+  const handleTestConnection = async (type) => {
+    if (type === 'WebDAV') {
+      setLoading(true)
+      toast.info('Testing WebDAV connection...')
+      try {
+        await webdavServerSettingService.testConnection(
+          settings.webdavUrl,
+          settings.webdavUsername,
+          settings.webdavPassword
+        )
+      } catch (error) {
+        console.error('Connection test failed:', error)
+      } finally {
+        setLoading(false)
+      }
+    } else {
+      toast.info(`Testing ${type} connection...`)
+      setTimeout(() => {
+        toast.success(`${type} connection successful`)
+      }, 2000)
+    }
   }
   
   const renderGeneralSettings = () => (
@@ -106,13 +207,18 @@ const Settings = () => {
     </div>
   )
   
-  const renderWebDAVSettings = () => (
+const renderWebDAVSettings = () => (
     <div className="space-y-6">
       <Card className="p-6">
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-lg font-semibold flex items-center gap-2">
             <ApperIcon name="Globe" size={20} />
             WebDAV Configuration
+            {webdavLoading && (
+              <div className="ml-2">
+                <ApperIcon name="Loader2" size={16} className="animate-spin text-gray-400" />
+              </div>
+            )}
           </h3>
           <Badge variant={settings.webdavEnabled ? 'success' : 'default'}>
             {settings.webdavEnabled ? 'Enabled' : 'Disabled'}
@@ -131,6 +237,7 @@ const Settings = () => {
                 checked={settings.webdavEnabled}
                 onChange={(e) => setSettings(prev => ({ ...prev, webdavEnabled: e.target.checked }))}
                 className="sr-only peer"
+                disabled={webdavLoading}
               />
               <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
             </label>
@@ -143,6 +250,8 @@ const Settings = () => {
                 value={settings.webdavUrl}
                 onChange={(e) => setSettings(prev => ({ ...prev, webdavUrl: e.target.value }))}
                 placeholder="https://your-server.com/webdav"
+                disabled={webdavLoading}
+                required
               />
               
               <Input
@@ -150,6 +259,8 @@ const Settings = () => {
                 value={settings.webdavUsername}
                 onChange={(e) => setSettings(prev => ({ ...prev, webdavUsername: e.target.value }))}
                 placeholder="your-username"
+                disabled={webdavLoading}
+                required
               />
               
               <Input
@@ -158,6 +269,7 @@ const Settings = () => {
                 value={settings.webdavPassword}
                 onChange={(e) => setSettings(prev => ({ ...prev, webdavPassword: e.target.value }))}
                 placeholder="your-password"
+                disabled={webdavLoading}
               />
               
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
@@ -177,12 +289,34 @@ const Settings = () => {
         </div>
         
         <div className="mt-6 flex gap-2">
-          <Button onClick={() => handleSave('WebDAV')} variant="primary">
-            Save Changes
+          <Button 
+            onClick={() => handleSave('WebDAV')} 
+            variant="primary"
+            disabled={loading || webdavLoading || !settings.webdavUrl || !settings.webdavUsername}
+          >
+            {loading ? (
+              <>
+                <ApperIcon name="Loader2" size={16} className="animate-spin mr-2" />
+                Saving...
+              </>
+            ) : (
+              'Save Changes'
+            )}
           </Button>
-          {settings.webdavEnabled && (
-            <Button onClick={() => handleTestConnection('WebDAV')} variant="outline">
-              Test Connection
+          {settings.webdavEnabled && settings.webdavUrl && settings.webdavUsername && (
+            <Button 
+              onClick={() => handleTestConnection('WebDAV')} 
+              variant="outline"
+              disabled={loading || webdavLoading}
+            >
+              {loading ? (
+                <>
+                  <ApperIcon name="Loader2" size={16} className="animate-spin mr-2" />
+                  Testing...
+                </>
+              ) : (
+                'Test Connection'
+              )}
             </Button>
           )}
         </div>
