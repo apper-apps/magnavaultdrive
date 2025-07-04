@@ -86,12 +86,12 @@ try {
     }
   }
   
-  const filteredFiles = files.filter(file =>
-    file.name.toLowerCase().includes(searchTerm.toLowerCase())
+const filteredFiles = files.filter(file =>
+    file.Name?.toLowerCase?.()?.includes(searchTerm.toLowerCase()) || false
   )
   
   const filteredFolders = folders.filter(folder =>
-    folder.name.toLowerCase().includes(searchTerm.toLowerCase())
+    folder.Name?.toLowerCase?.()?.includes(searchTerm.toLowerCase()) || false
   )
   
 const sortItems = (items, type) => {
