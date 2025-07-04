@@ -13,7 +13,7 @@ class FileService {
   async getAll() {
     try {
       const params = {
-        fields: [
+fields: [
           { field: { Name: "Name" } },
           { field: { Name: "Tags" } },
           { field: { Name: "Owner" } },
@@ -23,7 +23,8 @@ class FileService {
           { field: { Name: "created_at" } },
           { field: { Name: "modified_at" } },
           { field: { Name: "shared_links" } },
-          { field: { Name: "parent_id" } }
+          { field: { Name: "parent_id" } },
+          { field: { Name: "storage_location" } }
         ]
       }
       
@@ -46,7 +47,7 @@ class FileService {
   async getById(id) {
     try {
       const params = {
-        fields: [
+fields: [
           { field: { Name: "Name" } },
           { field: { Name: "Tags" } },
           { field: { Name: "Owner" } },
@@ -56,7 +57,8 @@ class FileService {
           { field: { Name: "created_at" } },
           { field: { Name: "modified_at" } },
           { field: { Name: "shared_links" } },
-          { field: { Name: "parent_id" } }
+          { field: { Name: "parent_id" } },
+          { field: { Name: "storage_location" } }
         ]
       }
       
@@ -79,7 +81,7 @@ class FileService {
   async getByFolder(folderId) {
     try {
       const params = {
-        fields: [
+fields: [
           { field: { Name: "Name" } },
           { field: { Name: "Tags" } },
           { field: { Name: "Owner" } },
@@ -89,7 +91,8 @@ class FileService {
           { field: { Name: "created_at" } },
           { field: { Name: "modified_at" } },
           { field: { Name: "shared_links" } },
-          { field: { Name: "parent_id" } }
+          { field: { Name: "parent_id" } },
+          { field: { Name: "storage_location" } }
         ],
         where: [
           {
@@ -119,7 +122,7 @@ class FileService {
   async create(fileData) {
     try {
       const params = {
-        records: [{
+records: [{
           Name: fileData.name,
           Tags: fileData.tags || "",
           Owner: fileData.owner,
@@ -129,7 +132,8 @@ class FileService {
           created_at: new Date().toISOString(),
           modified_at: new Date().toISOString(),
           shared_links: fileData.shared_links || "",
-          parent_id: fileData.parentId
+          parent_id: fileData.parentId,
+          storage_location: fileData.storageLocation || "wasabi"
         }]
       }
       
@@ -179,9 +183,9 @@ class FileService {
       if (updates.size !== undefined) updateData.size = updates.size
       if (updates.type !== undefined) updateData.type = updates.type
       if (updates.encrypted !== undefined) updateData.encrypted = updates.encrypted
-      if (updates.shared_links !== undefined) updateData.shared_links = updates.shared_links
+if (updates.shared_links !== undefined) updateData.shared_links = updates.shared_links
       if (updates.parentId !== undefined) updateData.parent_id = updates.parentId
-      
+      if (updates.storageLocation !== undefined) updateData.storage_location = updates.storageLocation
       updateData.modified_at = new Date().toISOString()
       
       const params = {

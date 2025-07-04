@@ -64,16 +64,16 @@ const FileUploadModal = ({ isOpen, onClose, onUploadComplete }) => {
       updateUploadStatus(uploadId, 'uploading', 30)
       await simulateProgress(uploadId, 'uploading', 30, 100, 2000)
       
-      // Create file record
+// Create file record
       const fileData = {
         name: file.name,
         size: file.size,
         type: file.type,
         encrypted: true,
         parentId: null,
-        sharedLinks: []
+        sharedLinks: [],
+        storageLocation: 'wasabi'
       }
-      
       await fileService.create(fileData)
       updateUploadStatus(uploadId, 'completed', 100)
       

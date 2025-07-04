@@ -1,14 +1,16 @@
 import { useState } from 'react'
 import { motion } from 'framer-motion'
 import { toast } from 'react-toastify'
+import { useSelector } from 'react-redux'
 import ApperIcon from '@/components/ApperIcon'
 import Button from '@/components/atoms/Button'
 import Card from '@/components/atoms/Card'
 import Input from '@/components/atoms/Input'
 import Badge from '@/components/atoms/Badge'
-
+import { selectIsAdmin } from '@/store/userSlice'
 const Settings = () => {
   const [activeTab, setActiveTab] = useState('general')
+  const isAdmin = useSelector(selectIsAdmin)
   const [settings, setSettings] = useState({
     webdavEnabled: true,
     webdavUrl: 'https://vault.example.com/webdav',
@@ -188,80 +190,104 @@ const Settings = () => {
     </div>
   )
   
-  const renderStorageSettings = () => (
-    <div className="space-y-6">
-      <Card className="p-6">
-        <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-          <ApperIcon name="HardDrive" size={20} />
-          Wasabi Cloud Storage
-        </h3>
-        
-        <div className="space-y-4">
-          <Input
-            label="Access Key"
-            value={settings.wasabiAccessKey}
-            onChange={(e) => setSettings(prev => ({ ...prev, wasabiAccessKey: e.target.value }))}
-            placeholder="Your Wasabi access key"
-          />
-          
-          <Input
-            label="Secret Key"
-            type="password"
-            value={settings.wasabiSecretKey}
-            onChange={(e) => setSettings(prev => ({ ...prev, wasabiSecretKey: e.target.value }))}
-            placeholder="Your Wasabi secret key"
-          />
-          
-          <Input
-            label="Bucket Name"
-            value={settings.wasabiBucket}
-            onChange={(e) => setSettings(prev => ({ ...prev, wasabiBucket: e.target.value }))}
-            placeholder="my-vault-bucket"
-          />
-          
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Region
-            </label>
-            <select
-              value={settings.wasabiRegion}
-              onChange={(e) => setSettings(prev => ({ ...prev, wasabiRegion: e.target.value }))}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
-            >
-              <option value="us-east-1">US East 1 (N. Virginia)</option>
-              <option value="us-east-2">US East 2 (N. Virginia)</option>
-              <option value="us-west-1">US West 1 (Oregon)</option>
-              <option value="eu-central-1">EU Central 1 (Amsterdam)</option>
-              <option value="eu-west-1">EU West 1 (London)</option>
-              <option value="ap-northeast-1">Asia Pacific 1 (Tokyo)</option>
-              <option value="ap-southeast-1">Asia Pacific 2 (Singapore)</option>
-            </select>
+const renderStorageSettings = () => {
+    if (!isAdmin) {
+      return (
+        <div className="space-y-6">
+          <Card className="p-6">
+            <div className="text-center py-12">
+              <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <ApperIcon name="Lock" size={32} className="text-red-600" />
+              </div>
+              <h3 className="text-lg font-semibold text-gray-800 mb-2">Access Restricted</h3>
+              <p className="text-gray-600 mb-4">
+                Storage settings can only be configured by administrators.
+              </p>
+              <Badge variant="error">Admin Access Required</Badge>
+            </div>
+          </Card>
+        </div>
+      )
+    }
+
+    return (
+      <div className="space-y-6">
+        <Card className="p-6">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-semibold flex items-center gap-2">
+              <ApperIcon name="HardDrive" size={20} />
+              Wasabi Cloud Storage
+            </h3>
+            <Badge variant="success">Admin Only</Badge>
           </div>
           
-          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-            <div className="flex items-start gap-2">
-              <ApperIcon name="AlertTriangle" size={16} className="text-yellow-600 mt-0.5" />
-              <div className="text-sm">
-                <p className="font-medium text-yellow-800">Zero Encryption Storage</p>
-                <p className="text-yellow-600 mt-1">
-                  Files are stored without encryption on Wasabi. Client-side encryption is handled separately.
-                </p>
+          <div className="space-y-4">
+            <Input
+              label="Access Key"
+              value={settings.wasabiAccessKey}
+              onChange={(e) => setSettings(prev => ({ ...prev, wasabiAccessKey: e.target.value }))}
+              placeholder="Your Wasabi access key"
+            />
+            
+            <Input
+              label="Secret Key"
+              type="password"
+              value={settings.wasabiSecretKey}
+              onChange={(e) => setSettings(prev => ({ ...prev, wasabiSecretKey: e.target.value }))}
+              placeholder="Your Wasabi secret key"
+            />
+            
+            <Input
+              label="Bucket Name"
+              value={settings.wasabiBucket}
+              onChange={(e) => setSettings(prev => ({ ...prev, wasabiBucket: e.target.value }))}
+              placeholder="my-vault-bucket"
+            />
+            
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Region
+              </label>
+              <select
+                value={settings.wasabiRegion}
+                onChange={(e) => setSettings(prev => ({ ...prev, wasabiRegion: e.target.value }))}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+              >
+                <option value="us-east-1">US East 1 (N. Virginia)</option>
+                <option value="us-east-2">US East 2 (N. Virginia)</option>
+                <option value="us-west-1">US West 1 (Oregon)</option>
+                <option value="eu-central-1">EU Central 1 (Amsterdam)</option>
+                <option value="eu-west-1">EU West 1 (London)</option>
+                <option value="ap-northeast-1">Asia Pacific 1 (Tokyo)</option>
+                <option value="ap-southeast-1">Asia Pacific 2 (Singapore)</option>
+              </select>
+            </div>
+            
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+              <div className="flex items-start gap-2">
+                <ApperIcon name="Info" size={16} className="text-blue-600 mt-0.5" />
+                <div className="text-sm">
+                  <p className="font-medium text-blue-800">Default Storage Backend</p>
+                  <p className="text-blue-600 mt-1">
+                    All uploaded files are automatically stored in Wasabi with client-side encryption.
+                  </p>
+                </div>
               </div>
             </div>
           </div>
-        </div>
-        
-        <div className="mt-6 flex gap-2">
-          <Button onClick={() => handleSave('Storage')} variant="primary">
-            Save Changes
-          </Button>
-          <Button onClick={() => handleTestConnection('Wasabi')} variant="outline">
-            Test Connection
-          </Button>
-        </div>
-      </Card>
-    </div>
-  )
+          
+          <div className="mt-6 flex gap-2">
+            <Button onClick={() => handleSave('Storage')} variant="primary">
+              Save Changes
+            </Button>
+            <Button onClick={() => handleTestConnection('Wasabi')} variant="outline">
+              Test Connection
+            </Button>
+          </div>
+        </Card>
+      </div>
+    )
+  }
   
   const renderSecuritySettings = () => (
     <div className="space-y-6">
@@ -410,24 +436,35 @@ const Settings = () => {
       <div className="flex-1 overflow-auto">
         <div className="flex h-full">
           {/* Sidebar */}
-          <div className="w-64 bg-white border-r border-gray-200 p-4">
+<div className="w-64 bg-white border-r border-gray-200 p-4">
             <nav className="space-y-2">
-              {tabs.map((tab) => (
-                <button
-                  key={tab.id}
-                  onClick={() => setActiveTab(tab.id)}
-                  className={`
-                    w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-colors text-left
-                    ${activeTab === tab.id
-                      ? 'bg-primary text-white'
-                      : 'text-gray-700 hover:bg-gray-100'
-                    }
-                  `}
-                >
-                  <ApperIcon name={tab.icon} size={18} />
-                  {tab.label}
-                </button>
-              ))}
+              {tabs.map((tab) => {
+                const isStorageTab = tab.id === 'storage'
+                const isRestricted = isStorageTab && !isAdmin
+                
+                return (
+                  <button
+                    key={tab.id}
+                    onClick={() => !isRestricted && setActiveTab(tab.id)}
+                    disabled={isRestricted}
+                    className={`
+                      w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-colors text-left relative
+                      ${activeTab === tab.id
+                        ? 'bg-primary text-white'
+                        : isRestricted
+                        ? 'text-gray-400 cursor-not-allowed'
+                        : 'text-gray-700 hover:bg-gray-100'
+                      }
+                    `}
+                  >
+                    <ApperIcon name={tab.icon} size={18} />
+                    {tab.label}
+                    {isStorageTab && !isAdmin && (
+                      <ApperIcon name="Lock" size={14} className="ml-auto" />
+                    )}
+                  </button>
+                )
+              })}
             </nav>
           </div>
           
