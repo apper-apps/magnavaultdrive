@@ -1,0 +1,29 @@
+[
+  {
+    "Id": 1,
+    "fileId": 2,
+    "url": "https://vault.example.com/share/abc123def456",
+    "expiresAt": "2024-02-15T00:00:00Z",
+    "accessCount": 5,
+    "permissions": "read",
+    "createdAt": "2024-01-14T14:30:00Z"
+  },
+  {
+    "Id": 2,
+    "fileId": 3,
+    "url": "https://vault.example.com/share/def456ghi789",
+    "expiresAt": "2024-02-20T00:00:00Z",
+    "accessCount": 12,
+    "permissions": "read",
+    "createdAt": "2024-01-13T09:45:00Z"
+  },
+  {
+    "Id": 3,
+    "fileId": 1,
+    "url": "https://vault.example.com/share/ghi789jkl012",
+    "expiresAt": null,
+    "accessCount": 3,
+    "permissions": "read",
+    "createdAt": "2024-01-15T11:00:00Z"
+  }
+]

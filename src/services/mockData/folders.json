@@ -1,0 +1,50 @@
+[
+  {
+    "Id": 1,
+    "name": "Documents",
+    "parentId": null,
+    "path": "/Documents",
+    "createdAt": "2024-01-01T00:00:00Z",
+    "childCount": 12
+  },
+  {
+    "Id": 2,
+    "name": "Photos",
+    "parentId": null,
+    "path": "/Photos",
+    "createdAt": "2024-01-01T00:00:00Z",
+    "childCount": 8
+  },
+  {
+    "Id": 3,
+    "name": "Videos",
+    "parentId": null,
+    "path": "/Videos",
+    "createdAt": "2024-01-01T00:00:00Z",
+    "childCount": 5
+  },
+  {
+    "Id": 4,
+    "name": "Archives",
+    "parentId": null,
+    "path": "/Archives",
+    "createdAt": "2024-01-01T00:00:00Z",
+    "childCount": 3
+  },
+  {
+    "Id": 5,
+    "name": "Work Projects",
+    "parentId": 1,
+    "path": "/Documents/Work Projects",
+    "createdAt": "2024-01-02T00:00:00Z",
+    "childCount": 7
+  },
+  {
+    "Id": 6,
+    "name": "Personal",
+    "parentId": 1,
+    "path": "/Documents/Personal",
+    "createdAt": "2024-01-02T00:00:00Z",
+    "childCount": 5
+  }
+]
