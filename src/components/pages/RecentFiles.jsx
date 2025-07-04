@@ -18,11 +18,11 @@ const RecentFiles = () => {
     setLoading(true)
     setError(null)
     
-    try {
+try {
       const allFiles = await fileService.getAll()
       // Sort by modified date and take the most recent 50
       const recentFiles = allFiles
-        .sort((a, b) => new Date(b.modifiedAt) - new Date(a.modifiedAt))
+        .sort((a, b) => new Date(b.modified_at) - new Date(a.modified_at))
         .slice(0, 50)
       
       setFiles(recentFiles)

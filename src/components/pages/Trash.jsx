@@ -21,13 +21,13 @@ const Trash = () => {
     setLoading(true)
     setError(null)
     
-    try {
+try {
       // In a real app, this would fetch trashed files
       // For now, we'll simulate some trashed files
       const trashedFiles = [
         {
           Id: 1,
-          name: 'old-document.pdf',
+          Name: 'old-document.pdf',
           size: 2048576,
           type: 'application/pdf',
           encrypted: true,
@@ -36,7 +36,7 @@ const Trash = () => {
         },
         {
           Id: 2,
-          name: 'unused-image.jpg',
+          Name: 'unused-image.jpg',
           size: 1024768,
           type: 'image/jpeg',
           encrypted: true,
@@ -45,7 +45,7 @@ const Trash = () => {
         },
         {
           Id: 3,
-          name: 'backup-data.zip',
+          Name: 'backup-data.zip',
           size: 10485760,
           type: 'application/zip',
           encrypted: true,
@@ -221,7 +221,7 @@ const Trash = () => {
                         <ApperIcon name="File" size={20} className="text-red-600" />
                       </div>
                       <div>
-                        <h3 className="font-medium text-gray-800">{file.name}</h3>
+<h3 className="font-medium text-gray-800">{file.Name}</h3>
                         <div className="flex items-center gap-2 text-sm text-gray-500">
                           <span>Deleted {formatDate(file.deletedAt)}</span>
                           <span>•</span>

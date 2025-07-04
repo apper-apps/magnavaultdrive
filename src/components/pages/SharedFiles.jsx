@@ -25,7 +25,7 @@ const SharedFiles = () => {
     setLoading(true)
     setError(null)
     
-    try {
+try {
       const [allFiles, allSharedLinks] = await Promise.all([
         fileService.getAll(),
         sharedLinkService.getAll()
@@ -173,8 +173,8 @@ const SharedFiles = () => {
                 <p className="text-gray-600">Share files to see them here</p>
               </div>
             ) : (
-              sharedLinks.map((link) => {
-                const file = files.find(f => f.Id === link.fileId)
+sharedLinks.map((link) => {
+                const file = files.find(f => f.Id === link.file_id)
                 return (
                   <Card key={link.Id} className="p-4 hover:shadow-float transition-shadow">
                     <div className="flex items-center justify-between">

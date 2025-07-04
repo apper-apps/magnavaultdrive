@@ -34,7 +34,7 @@ const FileExplorer = () => {
     setLoading(true)
     setError(null)
     
-    try {
+try {
       const [filesData, foldersData] = await Promise.all([
         fileService.getByFolder(folderId),
         folderService.getByParent(folderId)
@@ -43,7 +43,7 @@ const FileExplorer = () => {
       setFiles(filesData)
       setFolders(foldersData)
       
-      // Build breadcrumb path
+// Build breadcrumb path
       if (folderId) {
         const folderPath = await folderService.getPath(folderId)
         setBreadcrumbPath(folderPath)
