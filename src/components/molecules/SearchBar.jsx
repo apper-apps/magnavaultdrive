@@ -1,11 +1,10 @@
 import React, { useState } from "react";
 import { motion } from "framer-motion";
-import Input from "@/components/atoms/Input";
+import AppIcon from "@/components/ApperIcon";
 import Button from "@/components/atoms/Button";
-import AppIcon from "@/components/atoms/AppIcon";
+import Input from "@/components/atoms/Input";
 const SearchBar = ({ onSearch, placeholder = "Search files and folders...", className = "" }) => {
   const [searchTerm, setSearchTerm] = useState("")
-  
   const handleSubmit = (e) => {
     e.preventDefault()
     onSearch(searchTerm)
