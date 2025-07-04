@@ -94,20 +94,23 @@ try {
     folder.name.toLowerCase().includes(searchTerm.toLowerCase())
   )
   
-  const sortItems = (items, type) => {
+const sortItems = (items, type) => {
     return [...items].sort((a, b) => {
-      let aValue = a[sortBy]
-      let bValue = b[sortBy]
+      // Safely get values with fallbacks
+      let aValue = a && a[sortBy] !== undefined ? a[sortBy] : null
+      let bValue = b && b[sortBy] !== undefined ? b[sortBy] : null
       
       if (sortBy === 'size' && type === 'file') {
-        aValue = a.size || 0
-        bValue = b.size || 0
-      } else if (sortBy === 'modifiedAt' || sortBy === 'createdAt') {
-        aValue = new Date(aValue).getTime()
-        bValue = new Date(bValue).getTime()
+        aValue = (a && typeof a.size === 'number') ? a.size : 0
+        bValue = (b && typeof b.size === 'number') ? b.size : 0
+      } else if (sortBy === 'ModifiedOn' || sortBy === 'CreatedOn' || sortBy === 'modified_at' || sortBy === 'created_at') {
+        // Handle date fields with null safety
+        aValue = aValue ? new Date(aValue).getTime() : 0
+        bValue = bValue ? new Date(bValue).getTime() : 0
       } else {
-        aValue = aValue?.toString().toLowerCase() || ''
-        bValue = bValue?.toString().toLowerCase() || ''
+        // Handle text fields with null safety
+        aValue = aValue !== null && aValue !== undefined ? aValue.toString().toLowerCase() : ''
+        bValue = bValue !== null && bValue !== undefined ? bValue.toString().toLowerCase() : ''
       }
       
       if (sortOrder === 'asc') {
@@ -177,10 +180,10 @@ try {
                 }}
                 className="px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary"
               >
-                <option value="name-asc">Name (A-Z)</option>
-                <option value="name-desc">Name (Z-A)</option>
-                <option value="modifiedAt-desc">Modified (Newest)</option>
-                <option value="modifiedAt-asc">Modified (Oldest)</option>
+<option value="Name-asc">Name (A-Z)</option>
+                <option value="Name-desc">Name (Z-A)</option>
+                <option value="ModifiedOn-desc">Modified (Newest)</option>
+                <option value="ModifiedOn-asc">Modified (Oldest)</option>
                 <option value="size-desc">Size (Largest)</option>
                 <option value="size-asc">Size (Smallest)</option>
               </select>
