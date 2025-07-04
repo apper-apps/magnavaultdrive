@@ -58,15 +58,15 @@ const FolderCard = ({
             <ApperIcon name="Folder" size={32} className="text-blue-600" />
           </div>
           
-          {/* Folder Name */}
+{/* Folder Name */}
           <h3 className="font-medium text-gray-800 text-sm mb-1 line-clamp-2 min-h-[2.5rem] flex items-center">
-            {folder.name}
+            {folder.Name}
           </h3>
           
           {/* Folder Details */}
           <div className="text-xs text-gray-500 space-y-1">
-            <div>{folder.childCount} items</div>
-            <div>{formatDistanceToNow(new Date(folder.createdAt), { addSuffix: true })}</div>
+            <div>{folder.child_count} items</div>
+            <div>{formatDistanceToNow(new Date(folder.created_at), { addSuffix: true })}</div>
           </div>
         </div>
         
