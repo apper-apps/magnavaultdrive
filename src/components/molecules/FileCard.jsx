@@ -1,9 +1,9 @@
-import { useState } from 'react'
-import { motion } from 'framer-motion'
-import { formatDistanceToNow } from 'date-fns'
-import ApperIcon from '@/components/ApperIcon'
-import Card from '@/components/atoms/Card'
-import Badge from '@/components/atoms/Badge'
+import React, { useState } from "react";
+import { motion } from "framer-motion";
+import { formatDistanceToNow } from "date-fns";
+import ApperIcon from "@/components/ApperIcon";
+import Badge from "@/components/atoms/Badge";
+import Card from "@/components/atoms/Card";
 
 const FileCard = ({ 
   file, 
@@ -15,135 +15,195 @@ const FileCard = ({
 }) => {
   const [isHovered, setIsHovered] = useState(false)
   
+  // Utility function to format file size
   const formatFileSize = (bytes) => {
-    if (bytes === 0) return '0 Bytes'
+    if (!bytes || bytes === 0) return '0 Bytes'
+    
     const k = 1024
     const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB']
     const i = Math.floor(Math.log(bytes) / Math.log(k))
+    
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i]
   }
-  
+
+  // Get appropriate icon based on file type
   const getFileIcon = (type) => {
-    if (type.startsWith('image/')) return 'Image'
-    if (type.startsWith('video/')) return 'Video'
-    if (type.startsWith('audio/')) return 'Music'
-    if (type.includes('pdf')) return 'FileText'
-    if (type.includes('document') || type.includes('word')) return 'FileText'
-    if (type.includes('spreadsheet') || type.includes('excel')) return 'FileSpreadsheet'
-    if (type.includes('archive') || type.includes('zip')) return 'Archive'
+    if (!type) return 'File'
+    
+    const fileType = type.toLowerCase()
+    
+    if (fileType.includes('image') || ['jpg', 'jpeg', 'png', 'gif', 'svg', 'webp'].includes(fileType)) {
+      return 'Image'
+    }
+    if (fileType.includes('video') || ['mp4', 'avi', 'mov', 'wmv', 'flv', 'webm'].includes(fileType)) {
+      return 'Video'
+    }
+    if (fileType.includes('audio') || ['mp3', 'wav', 'flac', 'aac', 'ogg'].includes(fileType)) {
+      return 'Music'
+    }
+    if (fileType.includes('pdf')) {
+      return 'FileText'
+    }
+    if (fileType.includes('document') || ['doc', 'docx', 'txt', 'rtf'].includes(fileType)) {
+      return 'FileText'
+    }
+    if (fileType.includes('spreadsheet') || ['xls', 'xlsx', 'csv'].includes(fileType)) {
+      return 'FileSpreadsheet'
+    }
+    if (fileType.includes('presentation') || ['ppt', 'pptx'].includes(fileType)) {
+      return 'Presentation'
+    }
+    if (fileType.includes('archive') || ['zip', 'rar', '7z', 'tar', 'gz'].includes(fileType)) {
+      return 'Archive'
+    }
+    if (fileType.includes('code') || ['js', 'jsx', 'ts', 'tsx', 'html', 'css', 'php', 'py', 'java'].includes(fileType)) {
+      return 'Code'
+    }
+    
     return 'File'
   }
-  
+
+  // Get icon color based on file type
   const getIconColor = (type) => {
-    if (type.startsWith('image/')) return 'text-yellow-500'
-    if (type.startsWith('video/')) return 'text-red-500'
-    if (type.startsWith('audio/')) return 'text-purple-500'
-    if (type.includes('pdf')) return 'text-red-600'
-    if (type.includes('document') || type.includes('word')) return 'text-blue-500'
-    if (type.includes('spreadsheet') || type.includes('excel')) return 'text-green-500'
-    if (type.includes('archive') || type.includes('zip')) return 'text-amber-500'
+    if (!type) return 'text-gray-500'
+    
+    const fileType = type.toLowerCase()
+    
+    if (fileType.includes('image') || ['jpg', 'jpeg', 'png', 'gif', 'svg', 'webp'].includes(fileType)) {
+      return 'text-yellow-500'
+    }
+    if (fileType.includes('video') || ['mp4', 'avi', 'mov', 'wmv', 'flv', 'webm'].includes(fileType)) {
+      return 'text-red-500'
+    }
+    if (fileType.includes('audio') || ['mp3', 'wav', 'flac', 'aac', 'ogg'].includes(fileType)) {
+      return 'text-purple-500'
+    }
+    if (fileType.includes('pdf')) {
+      return 'text-red-600'
+    }
+    if (fileType.includes('document') || ['doc', 'docx', 'txt', 'rtf'].includes(fileType)) {
+      return 'text-blue-500'
+    }
+    if (fileType.includes('spreadsheet') || ['xls', 'xlsx', 'csv'].includes(fileType)) {
+      return 'text-green-500'
+    }
+    if (fileType.includes('presentation') || ['ppt', 'pptx'].includes(fileType)) {
+      return 'text-orange-500'
+    }
+    if (fileType.includes('archive') || ['zip', 'rar', '7z', 'tar', 'gz'].includes(fileType)) {
+      return 'text-green-600'
+    }
+    if (fileType.includes('code') || ['js', 'jsx', 'ts', 'tsx', 'html', 'css', 'php', 'py', 'java'].includes(fileType)) {
+      return 'text-indigo-500'
+    }
+    
     return 'text-gray-500'
   }
-  
+
+  // Event handlers
   const handleClick = (e) => {
     e.stopPropagation()
-    onSelect(file)
+    if (onSelect) {
+      onSelect(file)
+    }
   }
-  
+
   const handleDoubleClick = (e) => {
     e.stopPropagation()
-    onDoubleClick?.(file)
+    if (onDoubleClick) {
+      onDoubleClick(file)
+    }
   }
-  
+
   const handleContextMenu = (e) => {
     e.preventDefault()
     e.stopPropagation()
-    onContextMenu?.(e, file)
+    if (onContextMenu) {
+      onContextMenu(e, file)
+    }
   }
-  
+
   return (
     <motion.div
-      className={className}
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3 }}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
+      layout
+      initial={{ opacity: 0, scale: 0.9 }}
+      animate={{ opacity: 1, scale: 1 }}
+      exit={{ opacity: 0, scale: 0.9 }}
+      whileHover={{ y: -2 }}
+      className={`relative ${className}`}
     >
       <Card
         className={`
-          relative p-4 cursor-pointer transition-all duration-200
-          ${selected 
-            ? 'border-primary bg-gradient-to-br from-blue-50 to-indigo-50' 
-            : 'hover:shadow-float'
-          }
+          cursor-pointer transition-all duration-200 hover:shadow-lg
+          ${selected ? 'ring-2 ring-primary ring-opacity-50 bg-blue-50' : 'hover:bg-gray-50'}
+          ${isHovered ? 'shadow-md' : 'shadow-card'}
         `}
         onClick={handleClick}
         onDoubleClick={handleDoubleClick}
         onContextMenu={handleContextMenu}
-        hover
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
       >
-        {/* Encryption Badge */}
+        {/* Encryption badge */}
         {file.encrypted && (
-          <Badge
-            variant="encrypted"
-            size="sm"
-            icon="Shield"
-            className="absolute top-2 right-2 z-10"
-          >
-            Encrypted
-          </Badge>
+          <div className="encryption-badge">
+            <ApperIcon name="Shield" size={12} />
+            <span>Encrypted</span>
+          </div>
         )}
-        
-        {/* File Icon */}
-        <div className="flex flex-col items-center text-center">
-          <div className={`file-icon mb-3 ${file.type.startsWith('image/') ? 'image' : 
-            file.type.startsWith('video/') ? 'video' : 
-            file.type.startsWith('audio/') ? 'audio' : 
-            file.type.includes('archive') ? 'archive' : 'document'}`}>
+
+        <div className="p-4">
+          {/* File icon */}
+          <div className={`file-icon ${getIconColor(file.type).replace('text-', '')}`}>
             <ApperIcon 
               name={getFileIcon(file.type)} 
-              size={32} 
+              size={24} 
               className={getIconColor(file.type)}
             />
           </div>
-          
-          {/* File Name */}
-          <h3 className="font-medium text-gray-800 text-sm mb-1 line-clamp-2 min-h-[2.5rem] flex items-center">
-            {file.name}
-          </h3>
-          
-          {/* File Details */}
-          <div className="text-xs text-gray-500 space-y-1">
-            <div>{formatFileSize(file.size)}</div>
-            <div>{formatDistanceToNow(new Date(file.modifiedAt), { addSuffix: true })}</div>
+
+          {/* File details */}
+          <div className="space-y-2">
+            <h3 className="font-medium text-gray-900 truncate text-sm">
+              {file.Name || file.name || 'Untitled'}
+            </h3>
+            
+            <div className="flex items-center justify-between text-xs text-gray-500">
+              <span>{formatFileSize(file.size)}</span>
+              {file.modified_at && (
+                <span>
+                  {formatDistanceToNow(new Date(file.modified_at), { addSuffix: true })}
+                </span>
+              )}
+            </div>
+
+            {/* Tags */}
+            {file.Tags && (
+              <div className="flex flex-wrap gap-1 mt-2">
+                {file.Tags.split(',').slice(0, 2).map((tag, index) => (
+                  <Badge 
+                    key={index}
+                    variant="secondary" 
+                    className="text-xs px-2 py-1"
+                  >
+                    {tag.trim()}
+                  </Badge>
+                ))}
+                {file.Tags.split(',').length > 2 && (
+                  <Badge variant="outline" className="text-xs px-2 py-1">
+                    +{file.Tags.split(',').length - 2}
+                  </Badge>
+                )}
+              </div>
+            )}
           </div>
         </div>
-        
-        {/* Selection Indicator */}
+
+        {/* Selection indicator */}
         {selected && (
-          <motion.div
-            className="absolute top-2 left-2"
-            initial={{ scale: 0 }}
-            animate={{ scale: 1 }}
-            transition={{ duration: 0.2 }}
-          >
-            <div className="w-5 h-5 bg-primary rounded-full flex items-center justify-center">
-              <ApperIcon name="Check" size={12} className="text-white" />
-            </div>
-          </motion.div>
-        )}
-        
-        {/* Hover Actions */}
-        {isHovered && !selected && (
-          <motion.div
-            className="absolute top-2 left-2"
-            initial={{ opacity: 0, scale: 0.8 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.2 }}
-          >
-            <div className="w-5 h-5 border-2 border-gray-300 rounded-full bg-white" />
-          </motion.div>
+          <div className="absolute top-2 left-2 w-5 h-5 bg-primary rounded-full flex items-center justify-center">
+            <ApperIcon name="Check" size={12} className="text-white" />
+          </div>
         )}
       </Card>
     </motion.div>
