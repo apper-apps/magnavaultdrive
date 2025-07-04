@@ -9,6 +9,7 @@ import RecentFiles from '@/components/pages/RecentFiles'
 import SharedFiles from '@/components/pages/SharedFiles'
 import Trash from '@/components/pages/Trash'
 import Settings from '@/components/pages/Settings'
+import AdminPanel from '@/components/pages/AdminPanel'
 import Login from '@/components/pages/Login'
 import Signup from '@/components/pages/Signup'
 import Callback from '@/components/pages/Callback'
@@ -137,9 +138,10 @@ function App() {
                 <Route path="/" element={<FileExplorer />} />
                 <Route path="/folder/:folderId" element={<FileExplorer />} />
                 <Route path="/recent" element={<RecentFiles />} />
-                <Route path="/shared" element={<SharedFiles />} />
+<Route path="/shared" element={<SharedFiles />} />
                 <Route path="/trash" element={<Trash />} />
                 <Route path="/settings" element={<Settings />} />
+                <Route path="/admin" element={<AdminPanel />} />
               </Routes>
             </Layout>
           } />

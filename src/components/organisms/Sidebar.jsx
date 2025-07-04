@@ -1,19 +1,22 @@
 import { useState } from 'react'
 import { NavLink, useLocation } from 'react-router-dom'
+import { useSelector } from 'react-redux'
 import { motion, AnimatePresence } from 'framer-motion'
 import ApperIcon from '@/components/ApperIcon'
 import StorageIndicator from '@/components/molecules/StorageIndicator'
-
+import { selectIsAdmin } from '@/store/userSlice'
 const Sidebar = ({ isOpen, onClose, className = "" }) => {
   const location = useLocation()
   const [hoveredItem, setHoveredItem] = useState(null)
+  const isAdmin = useSelector(selectIsAdmin)
   
   const menuItems = [
     { path: '/', label: 'My Files', icon: 'Folder', count: null },
     { path: '/recent', label: 'Recent', icon: 'Clock', count: null },
     { path: '/shared', label: 'Shared', icon: 'Share2', count: 5 },
     { path: '/trash', label: 'Trash', icon: 'Trash2', count: 3 },
-    { path: '/settings', label: 'Settings', icon: 'Settings', count: null }
+    { path: '/settings', label: 'Settings', icon: 'Settings', count: null },
+    ...(isAdmin ? [{ path: '/admin', label: 'Admin Panel', icon: 'Shield', count: null }] : [])
   ]
   
   const isActive = (path) => {
