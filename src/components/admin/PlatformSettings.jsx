@@ -222,12 +222,20 @@ const PlatformSettings = () => {
       {/* Common Settings Quick Setup */}
       <Card className="p-6 mt-8">
         <h3 className="text-lg font-semibold text-gray-900 mb-4">Common Wasabi Storage Settings</h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {[
-            { name: 'wasabi_access_key', label: 'Access Key', type: 'storage' },
-            { name: 'wasabi_secret_key', label: 'Secret Key', type: 'storage' },
-            { name: 'wasabi_bucket_name', label: 'Bucket Name', type: 'storage' },
-            { name: 'wasabi_region', label: 'Region', type: 'storage' }
+            { name: 'wasabi_access_key', label: 'Wasabi Access Key', type: 'storage' },
+            { name: 'wasabi_secret_key', label: 'Wasabi Secret Key', type: 'storage' },
+            { name: 'wasabi_bucket_name', label: 'Wasabi Bucket Name', type: 'storage' },
+            { name: 'wasabi_region', label: 'Wasabi Region', type: 'storage' },
+            { name: 'sftp_server_address', label: 'SFTP Server Address', type: 'storage' },
+            { name: 'sftp_port', label: 'SFTP Port (22)', type: 'storage' },
+            { name: 'sftp_authentication_method', label: 'SFTP Auth Method', type: 'security' },
+            { name: 'sftp_username', label: 'SFTP Username', type: 'security' },
+            { name: 'sftp_password', label: 'SFTP Password', type: 'security' },
+            { name: 'sftp_private_key', label: 'SFTP Private Key', type: 'security' },
+            { name: 'sftp_passphrase', label: 'SFTP Key Passphrase', type: 'security' },
+            { name: 'sftp_root_path', label: 'SFTP Root Path', type: 'storage' }
           ].map((preset) => (
             <Button
               key={preset.name}
@@ -236,7 +244,10 @@ const PlatformSettings = () => {
               onClick={() => setFormData({
                 ...formData,
                 Name: preset.name,
-                setting_type: preset.type
+                setting_type: preset.type,
+                value: preset.name === 'sftp_port' ? '22' : 
+                       preset.name === 'sftp_authentication_method' ? 'Password' :
+                       preset.name === 'sftp_root_path' ? '/' : ''
               })}
               className="text-left justify-start"
             >

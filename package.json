@@ -20,7 +20,8 @@
 "react-dom": "^18.2.0",
     "react-redux": "9.2.0",
     "react-router-dom": "6.15.0",
-    "react-toastify": "11.0.5",
+"react-toastify": "11.0.5",
+    "ssh2-sftp-client": "^10.0.3",
     "webdav": "^5.8.0"
   },
   "devDependencies": {
