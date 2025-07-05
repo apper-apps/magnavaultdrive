@@ -1,8 +1,7 @@
 import { toast } from "react-toastify";
-import React from "react";
 import { createClient } from "webdav";
 import SftpClient from "ssh2-sftp-client";
-import Error from "@/components/ui/Error";
+import { toast } from "react-toastify";
 class FileService {
   constructor() {
     const { ApperClient } = window.ApperSDK;
@@ -951,18 +950,19 @@ await client.put(content, remotePath);
       const content = await client.get(sourcePath);
       await client.put(content, targetPath);
       
-      // Create new file record in database
+// Create new file record in database
       const newFile = await this.create({
-        name: targetName,
-        tags: file.Tags,
-        owner: file.Owner,
+        Name: targetName,
+        Tags: file.Tags,
+        Owner: file.Owner,
         size: file.size,
         type: file.type,
         encrypted: file.encrypted,
-        parentId: file.parent_id,
-        storageLocation: file.storage_location
+        parent_id: file.parent_id,
+        storage_location: file.storage_location,
+        created_at: new Date().toISOString(),
+        modified_at: new Date().toISOString()
       });
-      
       if (newFile) {
         toast.success(`File copied successfully: ${targetName}`);
         return newFile;
@@ -1269,18 +1269,19 @@ await client.put(content, remotePath);
         // Copy file on WebDAV server
         await client.copyFile(sourcePath, targetPath);
         
-        // Create new file record in database
+// Create new file record in database
         const newFile = await this.create({
-          name: targetName,
-          tags: file.Tags,
-          owner: file.Owner,
+          Name: targetName,
+          Tags: file.Tags,
+          Owner: file.Owner,
           size: file.size,
           type: file.type,
           encrypted: file.encrypted,
-          parentId: file.parent_id,
-          storageLocation: file.storage_location
+          parent_id: file.parent_id,
+          storage_location: file.storage_location,
+          created_at: new Date().toISOString(),
+          modified_at: new Date().toISOString()
         });
-        
         if (newFile) {
           toast.success(`File copied successfully: ${targetName}`);
           return newFile;
