@@ -1,7 +1,6 @@
 import { toast } from "react-toastify";
 import { createClient } from "webdav";
 import SftpClient from "ssh2-sftp-client";
-import { toast } from "react-toastify";
 class FileService {
   constructor() {
     const { ApperClient } = window.ApperSDK;
