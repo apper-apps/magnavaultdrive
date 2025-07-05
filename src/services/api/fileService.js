@@ -1,16 +1,63 @@
 import { toast } from "react-toastify";
 import { createClient } from "webdav";
-import SftpClient from "ssh2-sftp-client";
+
 class FileService {
   constructor() {
     const { ApperClient } = window.ApperSDK;
     this.apperClient = new ApperClient({
       apperProjectId: import.meta.env.VITE_APPER_PROJECT_ID,
       apperPublicKey: import.meta.env.VITE_APPER_PUBLIC_KEY
-});
+    });
     this.tableName = 'file';
     this.webdavClient = null;
     this.sftpClient = null;
+  }
+
+  // Get WebDAV client instance
+  async getWebDAVClient() {
+    if (this.webdavClient) {
+      return this.webdavClient;
+    }
+
+    try {
+      const { ApperClient } = window.ApperSDK;
+      const webdavApperClient = new ApperClient({
+        apperProjectId: import.meta.env.VITE_APPER_PROJECT_ID,
+        apperPublicKey: import.meta.env.VITE_APPER_PUBLIC_KEY
+      });
+      
+      const settingsResponse = await webdavApperClient.fetchRecords('webdav_server_setting', {
+        fields: [
+          { field: { Name: "webdav_server_url" } },
+          { field: { Name: "username" } },
+          { field: { Name: "password" } }
+        ],
+        where: [
+          {
+            FieldName: "webdav_server_url",
+            Operator: "HasValue",
+            Values: []
+          }
+        ],
+        pagingInfo: { limit: 1, offset: 0 }
+      });
+
+      if (!settingsResponse.success || !settingsResponse.data || settingsResponse.data.length === 0) {
+        throw new Error("WebDAV not configured");
+      }
+
+      const webdavSettings = settingsResponse.data[0];
+      
+      this.webdavClient = createClient(webdavSettings.webdav_server_url, {
+        username: webdavSettings.username,
+        password: webdavSettings.password
+      });
+
+      return this.webdavClient;
+    } catch (error) {
+      console.error("Error creating WebDAV client:", error);
+      throw error;
+    }
   }
 async getAll() {
     try {
@@ -147,9 +194,9 @@ async create(fileData) {
         return null
       }
       
-      if (response.results) {
+if (response.results) {
         const successfulRecords = response.results.filter(result => result.success)
-const failedRecords = response.results.filter(result => !result.success)
+        const failedRecords = response.results.filter(result => !result.success)
         if (failedRecords.length > 0) {
           console.error(`Failed to create ${failedRecords.length} records: ${JSON.stringify(failedRecords)}`)
           
@@ -179,9 +226,9 @@ const failedRecords = response.results.filter(result => !result.success)
       }
       
       if (updates.name !== undefined) updateData.Name = updates.name
-      if (updates.tags !== undefined) updateData.Tags = updates.tags
+if (updates.tags !== undefined) updateData.Tags = updates.tags
       if (updates.owner !== undefined) updateData.Owner = updates.owner
-if (updates.size !== undefined) updateData.size = updates.size
+      if (updates.size !== undefined) updateData.size = updates.size
       if (updates.type !== undefined) updateData.type = updates.type
       if (updates.encrypted !== undefined) updateData.encrypted = updates.encrypted
       if (updates.shared_links !== undefined) updateData.shared_links = updates.shared_links
@@ -201,9 +248,9 @@ if (updates.size !== undefined) updateData.size = updates.size
         return null
       }
       
-      if (response.results) {
+if (response.results) {
         const successfulUpdates = response.results.filter(result => result.success)
-const failedUpdates = response.results.filter(result => !result.success)
+        const failedUpdates = response.results.filter(result => !result.success)
         if (failedUpdates.length > 0) {
           console.error(`Failed to update ${failedUpdates.length} records: ${JSON.stringify(failedUpdates)}`)
           
@@ -240,13 +287,16 @@ const failedUpdates = response.results.filter(result => !result.success)
         return false
       }
       
-      if (response.results) {
+if (response.results) {
         const successfulDeletions = response.results.filter(result => result.success)
-const failedDeletions = response.results.filter(result => !result.success)
+        const failedDeletions = response.results.filter(result => !result.success)
         if (failedDeletions.length > 0) {
           console.error(`Failed to delete ${failedDeletions.length} records: ${JSON.stringify(failedDeletions)}`)
           
           failedDeletions.forEach(record => {
+            record.errors?.forEach(error => {
+              toast.error(`${error.fieldLabel}: ${error.message}`)
+            })
             if (record.message) toast.error(record.message)
           })
         }
@@ -257,207 +307,72 @@ const failedDeletions = response.results.filter(result => !result.success)
       return false
     } catch (error) {
       console.error("Error deleting file:", error)
-toast.error("Failed to delete file")
+      toast.error("Failed to delete file")
       return false
     }
   }
 
-// WebDAV Operations
-  async getWebDAVClient() {
-    if (this.webdavClient) {
-      return this.webdavClient;
-    }
+  // List SFTP directory contents
+  async listSFTPDirectory(path = '/') {
+    const errorMessage = 'SFTP directory listing must be implemented through server-side API endpoints. Browser security restrictions prevent direct SSH/SFTP operations.';
+    console.error(errorMessage);
+    toast.error('SFTP directory listing requires server-side implementation');
+    throw new Error(errorMessage);
+}
 
-    try {
-      const { ApperClient } = window.ApperSDK;
-      const webdavApperClient = new ApperClient({
-        apperProjectId: import.meta.env.VITE_APPER_PROJECT_ID,
-        apperPublicKey: import.meta.env.VITE_APPER_PUBLIC_KEY
-      });
-      
-      const settingsResponse = await webdavApperClient.fetchRecords('webdav_server_setting', {
-        fields: [
-          { field: { Name: "server_url" } },
-          { field: { Name: "username" } },
-          { field: { Name: "password" } }
-        ],
-        pagingInfo: { limit: 1, offset: 0 }
-      });
-
-      if (!settingsResponse.success || !settingsResponse.data || settingsResponse.data.length === 0) {
-        throw new Error("WebDAV not configured");
-      }
-
-      const webdavSettings = settingsResponse.data[0];
-      
-      this.webdavClient = createClient(
-        webdavSettings.server_url,
-        {
-          username: webdavSettings.username,
-          password: webdavSettings.password,
-          maxContentLength: 1000000000, // 1GB
-          maxBodyLength: 1000000000
-        }
-      );
-
-      return this.webdavClient;
-    } catch (error) {
-      console.error("Error creating WebDAV client:", error);
-      throw error;
-    }
+  // Read SFTP file content
+  async readSFTPFile(fileId) {
+    const errorMessage = 'SFTP file reading must be implemented through server-side API endpoints. Browser environments cannot access remote file systems directly.';
+    console.error(errorMessage);
+    toast.error('SFTP file reading requires server-side implementation');
+    throw new Error(errorMessage);
   }
 
-  async testWebDAVConnection() {
-    try {
-      const client = await this.getWebDAVClient();
-      
-      // Test connection by getting directory contents
-      await client.getDirectoryContents("/");
-      return true;
-    } catch (error) {
-      console.error("WebDAV connection test failed:", error);
-      if (error.status === 401) {
-        toast.error("WebDAV authentication failed - invalid credentials");
-      } else if (error.status === 404) {
-        toast.error("WebDAV server not found - check server URL");
-      } else if (error.status === 200 && error.message?.includes('Not a valid DAV response')) {
-        toast.error("Server returned invalid WebDAV response - ensure WebDAV is enabled");
-      } else {
-        toast.error(`WebDAV connection failed: ${error.message || 'Unknown error'}`);
-      }
-      return false;
-    }
+  // Write SFTP file content
+  async writeSFTPFile(fileId, content) {
+    const errorMessage = 'SFTP file writing must be implemented through server-side API endpoints. Browser security prevents direct file system access.';
+    console.error(errorMessage);
+    toast.error('SFTP file writing requires server-side implementation');
+    throw new Error(errorMessage);
+}
+
+  // Delete SFTP file
+  async deleteSFTPFile(fileId) {
+    const errorMessage = 'SFTP file deletion must be implemented through server-side API endpoints. Browser security restrictions prevent direct remote file operations.';
+    console.error(errorMessage);
+    toast.error('SFTP file deletion requires server-side implementation');
+    throw new Error(errorMessage);
+}
+
+  // Copy SFTP file
+  async copySFTPFile(fileId, newName) {
+    const errorMessage = 'SFTP file copying must be implemented through server-side API endpoints. Browser environments cannot perform direct remote file operations.';
+    console.error(errorMessage);
+    toast.error('SFTP file copying requires server-side implementation');
+    throw new Error(errorMessage);
+  }
+// Move SFTP file
+  async moveSFTPFile(fileId, newParentId) {
+    const errorMessage = 'SFTP file moving must be implemented through server-side API endpoints. Browser security prevents direct remote file system operations.';
+    console.error(errorMessage);
+    toast.error('SFTP file moving requires server-side implementation');
+    throw new Error(errorMessage);
+  }
+// Rename SFTP file
+  async renameSFTPFile(fileId, newName) {
+    const errorMessage = 'SFTP file renaming must be implemented through server-side API endpoints. Browser environments cannot access SSH/SFTP protocols directly.';
+    console.error(errorMessage);
+    toast.error('SFTP file renaming requires server-side implementation');
+    throw new Error(errorMessage);
   }
 
-  async listWebDAVDirectory(path = "/") {
-    try {
-      const client = await this.getWebDAVClient();
-      
-      const contents = await client.getDirectoryContents(path, {
-        details: true,
-        includeSelf: false
-      });
-
-      return contents.map(item => ({
-        name: item.filename.split('/').pop(),
-        path: item.filename,
-        type: item.type, // 'file' or 'directory'
-        size: item.size || 0,
-        lastmod: item.lastmod,
-        etag: item.etag,
-        contentType: item.mime || 'application/octet-stream'
-      }));
-    } catch (error) {
-      console.error("Error listing WebDAV directory:", error);
-      if (error.status === 401) {
-        toast.error("WebDAV authentication failed");
-      } else if (error.status === 404) {
-        toast.error("Directory not found");
-      } else {
-        toast.error(`Failed to list directory: ${error.message || 'Unknown error'}`);
-      }
-      throw error;
-    }
-  }
-
+  // Read WebDAV file content
   async readWebDAVFile(fileId) {
     try {
       const file = await this.getById(fileId);
       if (!file) {
-        toast.error("File not found");
-        return null;
+        throw new Error('File not found');
       }
-
-      const client = await this.getWebDAVClient();
-      
-      // Normalize Windows-compatible path
-      const normalizedPath = this.normalizeWindowsPath(file.Name);
-      
-      // Read file content as buffer
-      const content = await client.getFileContents(normalizedPath, { format: "binary" });
-      
-      toast.success(`File read successfully: ${file.Name}`);
-      return {
-        content: content,
-        metadata: {
-          size: file.size,
-          type: file.type,
-          modified: file.modified_at,
-          name: file.Name
-        }
-      };
-    } catch (error) {
-      console.error("Error reading WebDAV file:", error);
-      if (error.status === 401) {
-        toast.error("WebDAV authentication failed");
-      } else if (error.status === 404) {
-        toast.error("File not found on WebDAV server");
-      } else {
-        toast.error(`Failed to read file: ${error.message || 'Unknown error'}`);
-      }
-      return null;
-    }
-  }
-async writeWebDAVFile(fileId, content) {
-    try {
-      const file = await this.getById(fileId);
-      if (!file) {
-        toast.error("File not found");
-        return false;
-      }
-
-      const client = await this.getWebDAVClient();
-      
-      // Normalize Windows-compatible path
-      const normalizedPath = this.normalizeWindowsPath(file.Name);
-      
-      // Write file content to WebDAV server
-      await client.putFileContents(normalizedPath, content, {
-        overwrite: true,
-        contentType: file.type || 'application/octet-stream'
-      });
-      
-// Update file metadata in database
-      const contentSize = content instanceof ArrayBuffer ? content.byteLength : 
-                         typeof content === 'string' ? new TextEncoder().encode(content).length : 0;
-      await this.update(fileId, {
-        modified_at: new Date().toISOString(),
-        size: contentSize
-      });
-      
-      toast.success(`File saved successfully: ${file.Name}`);
-      return true;
-    } catch (error) {
-      console.error("Error writing WebDAV file:", error);
-      if (error.status === 401) {
-        toast.error("WebDAV authentication failed");
-      } else if (error.status === 403) {
-        toast.error("Permission denied - cannot write to WebDAV server");
-      } else if (error.status === 507) {
-        toast.error("Insufficient storage space on WebDAV server");
-      } else {
-        toast.error(`Failed to save file: ${error.message || 'Unknown error'}`);
-      }
-      return false;
-    }
-  }
-async deleteWebDAVFile(fileId) {
-    try {
-      const file = await this.getById(fileId);
-      if (!file) {
-        toast.error("File not found");
-        return false;
-      }
-
-      const client = await this.getWebDAVClient();
-      
-      // Normalize Windows-compatible path
-      const normalizedPath = this.normalizeWindowsPath(file.Name);
-      
-      // Delete file from WebDAV server
-      await client.deleteFile(normalizedPath);
-      
-      // Delete from database
       const deleteResult = await this.delete(fileId);
       
       if (deleteResult) {
@@ -853,9 +768,8 @@ async renameWebDAVFile(fileId, newName) {
       const remotePath = this.sftpRootPath ? 
         `${this.sftpRootPath.replace(/\/$/, '')}/${this.normalizeSSHPath(file.Name)}` : 
         this.normalizeSSHPath(file.Name);
-      
-      // Write file content to SFTP server
-await client.put(content, remotePath);
+// Write file content to SFTP server
+      await client.put(content, remotePath);
       
       // Update file metadata in database
       const contentSize = content instanceof ArrayBuffer ? content.byteLength : 
@@ -947,9 +861,9 @@ await client.put(content, remotePath);
       
       // Read source file and write to target (SFTP doesn't have native copy)
       const content = await client.get(sourcePath);
-      await client.put(content, targetPath);
+await client.put(content, targetPath);
       
-// Create new file record in database
+      // Create new file record in database
       const newFile = await this.create({
         Name: targetName,
         Tags: file.Tags,
@@ -1266,13 +1180,13 @@ await client.put(content, remotePath);
         const targetPath = this.normalizeWindowsPath(targetName);
         
         // Copy file on WebDAV server
+// Copy file on WebDAV server
         await client.copyFile(sourcePath, targetPath);
         
-// Create new file record in database
+        // Create new file record in database
         const newFile = await this.create({
           Name: targetName,
           Tags: file.Tags,
-          Owner: file.Owner,
           size: file.size,
           type: file.type,
           encrypted: file.encrypted,
