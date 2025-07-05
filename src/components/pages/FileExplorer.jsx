@@ -39,10 +39,47 @@ try {
         fileService.getByFolder(folderId),
         folderService.getByParent(folderId)
       ])
-      
-      setFiles(filesData)
-      setFolders(foldersData)
-      
+const handleFileDoubleClick = async (file) => {
+    if (!file?.Id) return
+    
+    toast.info(`Opening ${file.Name}...`)
+    try {
+      const result = await fileService.readWebDAVFile(file.Id)
+      if (result) {
+        // For text files, show content in a modal or new window
+        if (file.type?.includes('text') || file.type?.includes('json') || file.type?.includes('xml')) {
+          const newWindow = window.open('', '_blank')
+          if (newWindow) {
+            newWindow.document.write(`
+              <html>
+                <head><title>${file.Name}</title></head>
+                <body style="font-family: monospace; padding: 20px; background: #f5f5f5;">
+                  <h3>File: ${file.Name}</h3>
+                  <pre style="background: white; padding: 15px; border-radius: 5px; border: 1px solid #ddd; overflow: auto;">${result.content}</pre>
+                </body>
+              </html>
+            `)
+            newWindow.document.close()
+          }
+        } else {
+          // For other file types, trigger download
+          const blob = new Blob([result.content], { type: file.type || 'application/octet-stream' })
+          const url = window.URL.createObjectURL(blob)
+          const a = document.createElement('a')
+          a.href = url
+          a.download = file.Name
+          document.body.appendChild(a)
+          a.click()
+          window.URL.revokeObjectURL(url)
+          document.body.removeChild(a)
+          toast.success(`File downloaded: ${file.Name}`)
+        }
+      }
+    } catch (error) {
+      console.error('Error opening file:', error)
+      toast.error(`Failed to open ${file.Name}`)
+    }
+  }
 // Build breadcrumb path
       if (folderId) {
         const folderPath = await folderService.getPath(folderId)

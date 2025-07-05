@@ -1,14 +1,15 @@
-import { useState } from 'react'
-import { motion } from 'framer-motion'
-import { useNavigate } from 'react-router-dom'
-import { toast } from 'react-toastify'
-import FileCard from '@/components/molecules/FileCard'
-import FolderCard from '@/components/molecules/FolderCard'
-import ContextMenu from '@/components/molecules/ContextMenu'
-import Button from '@/components/atoms/Button'
-import Loading from '@/components/ui/Loading'
-import Error from '@/components/ui/Error'
-import Empty from '@/components/ui/Empty'
+import React, { useState } from "react";
+import { motion } from "framer-motion";
+import { useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
+import Button from "@/components/atoms/Button";
+import Empty from "@/components/ui/Empty";
+import Error from "@/components/ui/Error";
+import Loading from "@/components/ui/Loading";
+import FileCard from "@/components/molecules/FileCard";
+import ContextMenu from "@/components/molecules/ContextMenu";
+import FolderCard from "@/components/molecules/FolderCard";
+import { fileService } from "@/services/api/fileService";
 
 const FileGrid = ({ 
   files = [], 
@@ -56,37 +57,84 @@ const FileGrid = ({
     setContextMenu({ isOpen: false, position: { x: 0, y: 0 }, item: null })
   }
   
-  const contextMenuItems = [
+const contextMenuItems = [
     {
       icon: 'Download',
       label: 'Download',
-      onClick: () => toast.info(`Downloading ${contextMenu.item?.name}`)
+      onClick: async () => {
+        if (contextMenu.item?.Id) {
+          toast.info(`Downloading ${contextMenu.item?.Name}...`)
+          const result = await fileService.readWebDAVFile(contextMenu.item.Id)
+          if (result) {
+            // Create download link
+            const blob = new Blob([result.content], { type: contextMenu.item.type || 'application/octet-stream' })
+            const url = window.URL.createObjectURL(blob)
+            const a = document.createElement('a')
+            a.href = url
+            a.download = contextMenu.item.Name
+            document.body.appendChild(a)
+            a.click()
+            window.URL.revokeObjectURL(url)
+            document.body.removeChild(a)
+          }
+        }
+        closeContextMenu()
+      }
     },
     {
       icon: 'Share2',
       label: 'Share',
-      onClick: () => toast.info(`Sharing ${contextMenu.item?.name}`)
+      onClick: () => {
+        toast.info(`Sharing ${contextMenu.item?.Name}`)
+        // TODO: Implement sharing functionality
+        closeContextMenu()
+      }
     },
     {
       icon: 'Edit',
       label: 'Rename',
-      onClick: () => toast.info(`Renaming ${contextMenu.item?.name}`)
+      onClick: async () => {
+        const newName = prompt('Enter new name:', contextMenu.item?.Name)
+        if (newName && newName.trim() && contextMenu.item?.Id) {
+          await fileService.renameWebDAVFile(contextMenu.item.Id, newName.trim())
+          onRefresh()
+        }
+        closeContextMenu()
+      }
     },
     {
       icon: 'Copy',
       label: 'Copy',
-      onClick: () => toast.info(`Copying ${contextMenu.item?.name}`)
+      onClick: async () => {
+        if (contextMenu.item?.Id) {
+          await fileService.copyWebDAVFile(contextMenu.item.Id)
+          onRefresh()
+        }
+        closeContextMenu()
+      }
     },
     {
       icon: 'Move',
       label: 'Move',
-      onClick: () => toast.info(`Moving ${contextMenu.item?.name}`)
+      onClick: () => {
+        toast.info(`Moving ${contextMenu.item?.Name}`)
+        // TODO: Implement move to folder functionality
+        closeContextMenu()
+      }
     },
     { type: 'divider' },
     {
       icon: 'Trash2',
       label: 'Delete',
-      onClick: () => toast.info(`Deleting ${contextMenu.item?.name}`),
+      onClick: async () => {
+        if (contextMenu.item?.Id && confirm(`Are you sure you want to delete "${contextMenu.item?.Name}"?`)) {
+          const result = await fileService.deleteWebDAVFile(contextMenu.item.Id)
+          if (result) {
+            onRefresh()
+          }
+        }
+        closeContextMenu()
+      },
       danger: true
     }
   ]
@@ -136,11 +184,30 @@ const FileGrid = ({
               {selectedItems.length} item(s) selected
             </span>
             <div className="flex items-center gap-2">
-              <Button
+<Button
                 variant="outline"
                 size="sm"
                 icon="Download"
-                onClick={() => toast.info('Downloading selected files')}
+                onClick={async () => {
+                  toast.info(`Downloading ${selectedItems.length} selected files...`)
+                  for (const item of selectedItems) {
+                    if (item.Id) {
+                      const result = await fileService.readWebDAVFile(item.Id)
+                      if (result) {
+                        const blob = new Blob([result.content], { type: item.type || 'application/octet-stream' })
+                        const url = window.URL.createObjectURL(blob)
+                        const a = document.createElement('a')
+                        a.href = url
+                        a.download = item.Name
+                        document.body.appendChild(a)
+                        a.click()
+                        window.URL.revokeObjectURL(url)
+                        document.body.removeChild(a)
+                      }
+                    }
+                  }
+                  setSelectedItems([])
+                }}
               >
                 Download
               </Button>
@@ -148,7 +215,10 @@ const FileGrid = ({
                 variant="outline"
                 size="sm"
                 icon="Share2"
-                onClick={() => toast.info('Sharing selected files')}
+                onClick={() => {
+                  toast.info(`Sharing ${selectedItems.length} selected files`)
+                  // TODO: Implement bulk sharing functionality
+                }}
               >
                 Share
               </Button>
@@ -156,7 +226,21 @@ const FileGrid = ({
                 variant="outline"
                 size="sm"
                 icon="Trash2"
-                onClick={() => toast.info('Deleting selected files')}
+                onClick={async () => {
+                  if (confirm(`Are you sure you want to delete ${selectedItems.length} selected files?`)) {
+                    toast.info(`Deleting ${selectedItems.length} selected files...`)
+                    let deletedCount = 0
+                    for (const item of selectedItems) {
+                      if (item.Id) {
+                        const result = await fileService.deleteWebDAVFile(item.Id)
+                        if (result) deletedCount++
+                      }
+                    }
+                    toast.success(`${deletedCount} files deleted successfully`)
+                    setSelectedItems([])
+                    onRefresh()
+                  }
+                }}
               >
                 Delete
               </Button>
